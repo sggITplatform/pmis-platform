@@ -18,9 +18,9 @@ import java.util.jar.JarFile;
  */
 public class JarEntryResource extends NutResource
 {
-	private JarFile jar;
-
 	private JarEntry entry;
+
+	private JarFile jar;
 
 	public JarEntryResource(JarEntryInfo jeInfo) throws IOException
 	{
@@ -38,11 +38,6 @@ public class JarEntryResource extends NutResource
 		this.name = name;
 	}
 
-	public JarFile getJar()
-	{
-		return jar;
-	}
-
 	public JarEntry getEntry()
 	{
 		return entry;
@@ -52,6 +47,11 @@ public class JarEntryResource extends NutResource
 	public InputStream getInputStream() throws IOException
 	{
 		return jar.getInputStream(entry);
+	}
+
+	public JarFile getJar()
+	{
+		return jar;
 	}
 
 }

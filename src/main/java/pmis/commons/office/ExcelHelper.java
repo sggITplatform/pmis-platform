@@ -37,8 +37,6 @@ import pmis.commons.lang.StringUtils;
 
 public class ExcelHelper
 {
-	private final Logger logger = LoggerFactory.getLogger(getClass());
-
 	// 设置cell编码解决中文高位字节截断
 	// 定制日期格式
 	private static String DATE_FORMAT = " m/d/yy "; // "m/d/yy h:mm"
@@ -46,13 +44,28 @@ public class ExcelHelper
 	// 定制浮点数格式
 	private static String NUMBER_FORMAT = " #,##0.00 ";
 
-	private String xlsFileName;
+	public static void main(String[] args)
+	{
+		String fileName = "G:/person_workspace/dataTemp/职级.xlsx";
+		ExcelHelper excel = new ExcelHelper(fileName);
+		String strKeys = "职务编号,职务名称";
+		List xlist = excel.importExcelToMap(strKeys);
+		for (int i = 0; i < xlist.size(); i++)
+		{
+			Map map = (Map) xlist.get(i);
+			System.out.println(map.get("职务名称"));
+		}
+	}
 
-	private Workbook workbook;
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	private Row row;
 
 	private Sheet sheet;
 
-	private Row row;
+	private Workbook workbook;
+
+	private String xlsFileName;
 
 	/**
 	 * 初始化Excel
@@ -77,6 +90,48 @@ public class ExcelHelper
 			this.workbook = new HSSFWorkbook();
 		}
 		this.sheet = workbook.createSheet();
+	}
+
+	/**
+	 * 增加一行
+	 * 
+	 * @param index
+	 *            行号
+	 */
+	public void createRow(int index)
+	{
+		this.row = this.sheet.createRow(index);
+	}
+
+	protected void downloadExcel(HSSFWorkbook workbook, HttpServletResponse response) throws Exception
+	{
+		OutputStream out = null;
+		try
+		{
+			out = response.getOutputStream();
+			response.setHeader("Content-disposition", "attachment;filename=" + URLEncoder.encode(xlsFileName, "UTF-8"));
+			response.setContentType("application/msexcel;charset=UTF-8");
+			workbook.write(out);
+		}
+		catch (Exception e)
+		{
+			logger.error("download excel error: " + e.getMessage(), e);
+			throw new Exception("download excel error", e);
+		}
+		finally
+		{
+			try
+			{
+				if (out != null)
+				{
+					out.close();
+					out = null;
+				}
+			}
+			catch (Exception e)
+			{
+			}
+		}
 	}
 
 	public void exportXLS() throws Exception
@@ -115,116 +170,6 @@ public class ExcelHelper
 			}
 		}
 
-	}
-
-	/**
-	 * 增加一行
-	 * 
-	 * @param index
-	 *            行号
-	 */
-	public void createRow(int index)
-	{
-		this.row = this.sheet.createRow(index);
-	}
-
-	/**
-	 * 设置单元格
-	 * 
-	 * @param index
-	 *            列号
-	 * @param value
-	 *            单元格填充值
-	 */
-	public void setCell(int index, String value)
-	{
-
-		Cell cell = this.row.createCell(index);
-		cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-		cell.setCellValue(value);
-	}
-
-	/**
-	 * 设置单元格
-	 * 
-	 * @param index
-	 *            列号
-	 * @param value
-	 *            单元格填充值
-	 */
-	public void setCell(int index, Date value)
-	{
-		Cell cell = this.row.createCell(index);
-		cell.setCellValue(value);
-		CellStyle cellStyle = workbook.createCellStyle();
-		DataFormat format = workbook.createDataFormat();
-		cellStyle.setDataFormat(format.getFormat("yyyy/m/d"));
-		cell.setCellStyle(cellStyle);
-	}
-
-	/**
-	 * 设置单元格
-	 * 
-	 * @param index
-	 *            列号
-	 * @param value
-	 *            单元格填充值
-	 */
-	public void setCell(int index, int value)
-	{
-		Cell cell = this.row.createCell(index);
-		cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
-		cell.setCellValue(value);
-	}
-
-	/**
-	 * 设置单元格
-	 * 
-	 * @param index
-	 *            列号
-	 * @param value
-	 *            单元格填充值
-	 */
-	public void setCell(int index, double value)
-	{
-		Cell cell = this.row.createCell(index);
-		cell.setCellType(Cell.CELL_TYPE_NUMERIC);
-		cell.setCellValue(value);
-		CellStyle cellStyle = workbook.createCellStyle(); // 建立新的cell样式
-		DataFormat format = workbook.createDataFormat();
-		cellStyle.setDataFormat(format.getFormat(NUMBER_FORMAT)); // 设置cell样式为定制的浮点数格式
-		cell.setCellStyle(cellStyle); // 设置该cell浮点数的显示格式
-	}
-
-	protected void downloadExcel(HSSFWorkbook workbook, HttpServletResponse response) throws Exception
-	{
-		OutputStream out = null;
-		try
-		{
-			out = response.getOutputStream();
-			response.setHeader("Content-disposition", "attachment;filename=" + URLEncoder.encode(xlsFileName, "UTF-8"));
-			response.setContentType("application/msexcel;charset=UTF-8");
-			workbook.write(out);
-		}
-		catch (Exception e)
-		{
-			logger.error("download excel error: " + e.getMessage(), e);
-			throw new Exception("download excel error", e);
-		}
-		finally
-		{
-			try
-			{
-				if (out != null)
-				{
-					out.close();
-					out = null;
-				}
-			}
-			catch (Exception e)
-			{
-			}
-		}
 	}
 
 	/**
@@ -358,16 +303,71 @@ public class ExcelHelper
 		return listMap;
 	}
 
-	public static void main(String[] args)
+	/**
+	 * 设置单元格
+	 * 
+	 * @param index
+	 *            列号
+	 * @param value
+	 *            单元格填充值
+	 */
+	public void setCell(int index, Date value)
 	{
-		String fileName = "G:/person_workspace/dataTemp/职级.xlsx";
-		ExcelHelper excel = new ExcelHelper(fileName);
-		String strKeys = "职务编号,职务名称";
-		List xlist = excel.importExcelToMap(strKeys);
-		for (int i = 0; i < xlist.size(); i++)
-		{
-			Map map = (Map) xlist.get(i);
-			System.out.println(map.get("职务名称"));
-		}
+		Cell cell = this.row.createCell(index);
+		cell.setCellValue(value);
+		CellStyle cellStyle = workbook.createCellStyle();
+		DataFormat format = workbook.createDataFormat();
+		cellStyle.setDataFormat(format.getFormat("yyyy/m/d"));
+		cell.setCellStyle(cellStyle);
+	}
+
+	/**
+	 * 设置单元格
+	 * 
+	 * @param index
+	 *            列号
+	 * @param value
+	 *            单元格填充值
+	 */
+	public void setCell(int index, double value)
+	{
+		Cell cell = this.row.createCell(index);
+		cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+		cell.setCellValue(value);
+		CellStyle cellStyle = workbook.createCellStyle(); // 建立新的cell样式
+		DataFormat format = workbook.createDataFormat();
+		cellStyle.setDataFormat(format.getFormat(NUMBER_FORMAT)); // 设置cell样式为定制的浮点数格式
+		cell.setCellStyle(cellStyle); // 设置该cell浮点数的显示格式
+	}
+
+	/**
+	 * 设置单元格
+	 * 
+	 * @param index
+	 *            列号
+	 * @param value
+	 *            单元格填充值
+	 */
+	public void setCell(int index, int value)
+	{
+		Cell cell = this.row.createCell(index);
+		cell.setCellType(HSSFCell.CELL_TYPE_NUMERIC);
+		cell.setCellValue(value);
+	}
+
+	/**
+	 * 设置单元格
+	 * 
+	 * @param index
+	 *            列号
+	 * @param value
+	 *            单元格填充值
+	 */
+	public void setCell(int index, String value)
+	{
+
+		Cell cell = this.row.createCell(index);
+		cell.setCellType(HSSFCell.CELL_TYPE_STRING);
+		cell.setCellValue(value);
 	}
 }

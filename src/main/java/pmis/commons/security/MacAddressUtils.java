@@ -24,15 +24,6 @@ public abstract class MacAddressUtils
 {
 	private final static Logger logger = LoggerFactory.getLogger(MacAddressUtils.class);
 
-	public static String hexByte(byte b)
-	{
-
-		String s = "000000" + Integer.toHexString(b);
-
-		return s.substring(s.length() - 2);
-
-	}
-
 	public static String getIP()
 	{
 		String ipStr = "";
@@ -50,6 +41,37 @@ public abstract class MacAddressUtils
 
 		}
 		return ipStr;
+	}
+
+	public static String getMAC()
+	{
+		StringBuilder ipStr = new StringBuilder();
+		InetAddress ip;
+		try
+		{
+
+			ip = InetAddress.getLocalHost();
+			System.out.println("Current IP address : " + ip.getHostAddress());
+
+			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+
+			byte[] mac = network.getHardwareAddress();
+			//System.out.println("mac size====" + mac.length);
+			for (int i = 0; i < mac.length; i++)
+			{
+				ipStr.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+			}
+		}
+		catch (UnknownHostException e)
+		{
+			e.printStackTrace();
+
+		}
+		catch (SocketException e)
+		{
+			e.printStackTrace();
+		}
+		return ipStr.toString();
 	}
 
 	public static byte[] getMacAddress()
@@ -90,35 +112,13 @@ public abstract class MacAddressUtils
 		return null;
 	}
 
-	public static String getMAC()
+	public static String hexByte(byte b)
 	{
-		StringBuilder ipStr = new StringBuilder();
-		InetAddress ip;
-		try
-		{
 
-			ip = InetAddress.getLocalHost();
-			System.out.println("Current IP address : " + ip.getHostAddress());
+		String s = "000000" + Integer.toHexString(b);
 
-			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+		return s.substring(s.length() - 2);
 
-			byte[] mac = network.getHardwareAddress();
-			//System.out.println("mac size====" + mac.length);
-			for (int i = 0; i < mac.length; i++)
-			{
-				ipStr.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
-			}
-		}
-		catch (UnknownHostException e)
-		{
-			e.printStackTrace();
-
-		}
-		catch (SocketException e)
-		{
-			e.printStackTrace();
-		}
-		return ipStr.toString();
 	}
 
 	public static void main(String[] args) throws Exception

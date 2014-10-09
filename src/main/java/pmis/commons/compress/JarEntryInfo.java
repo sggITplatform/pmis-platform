@@ -16,9 +16,9 @@ import java.io.IOException;
 public class JarEntryInfo
 {
 
-	private String jarPath;
-
 	private String entryName;
+
+	private String jarPath;
 
 	public JarEntryInfo()
 	{
@@ -53,25 +53,25 @@ public class JarEntryInfo
 		this.entryName = entryName;
 	}
 
-	public String getJarPath()
-	{
-		return jarPath;
-	}
-
-	public JarEntryInfo setJarPath(String jarPath)
-	{
-		this.jarPath = jarPath;
-		return this;
-	}
-
 	public String getEntryName()
 	{
 		return entryName;
 	}
 
+	public String getJarPath()
+	{
+		return jarPath;
+	}
+
 	public JarEntryInfo setEntryName(String entryName)
 	{
 		this.entryName = entryName;
+		return this;
+	}
+
+	public JarEntryInfo setJarPath(String jarPath)
+	{
+		this.jarPath = jarPath;
 		return this;
 	}
 

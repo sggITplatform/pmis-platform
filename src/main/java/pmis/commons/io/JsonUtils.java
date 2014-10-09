@@ -22,57 +22,6 @@ public class JsonUtils
 
 	private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
-	private ObjectMapper mapper;
-
-	public JsonUtils(Include include)
-	{
-		mapper = new ObjectMapper();
-		// 设置输出时包含属性的风格
-		if (include != null)
-		{
-			mapper.setSerializationInclusion(include);
-		}
-		// 设置输入时忽略在JSON字符串中存在但Java对象实际没有的属性
-		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		// 设置默认DateFormat yyyy-MM-dd HH:mm:ss
-		mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-		this.mapper.registerModule(new GuavaModule());
-	}
-
-	/**
-	 * 创建只输出非Null且非Empty(如List.isEmpty)的属性到Json字符串的Mapper,建议在外部接口中使用。
-	 * 
-	 * @return 只输出非Null且非Empty的属性到Json字符串的Mapper * <per> Exp data
-	 *         {"tenantId":null,"pageNo":1,"pageSize"
-	 *         :15,"totalRecord":0,"totalPage":0,
-	 *         "results":null,"id":11,"username":null,"password":"ddd"}
-	 * 
-	 *         result: String json=JsonUtils.nonEmptyJsonUtil().toJson(user);
-	 *         {"pageNo":1,"pageSize":15,"totalRecord":0,"totalPage":0,"id":11,
-	 *         "username":"xxxx","password":"ddd"} <per>
-	 * 
-	 */
-	public static JsonUtils nonEmptyJsonUtil()
-	{
-		return new JsonUtils(Include.NON_EMPTY);
-	}
-
-	/**
-	 * 创建只输出初始值被改变的属性到Json字符串的Mapper, 最节约的存储方式，建议在内部接口中使用。
-	 * 
-	 * @return 只输出初始值被改变的属性到Json字符串的Mapper * <per> Exp data
-	 *         {"tenantId":null,"pageNo":1,"pageSize"
-	 *         :15,"totalRecord":0,"totalPage":0,
-	 *         "results":null,"id":11,"username":null,"password":"ddd"}
-	 * 
-	 *         result: String json=JsonUtils.nonDefaultJsonUtil().toJson(user);
-	 *         {"pageNo":2,"password":"ddd222"} <per>
-	 */
-	public static JsonUtils nonDefaultJsonUtil()
-	{
-		return new JsonUtils(Include.NON_DEFAULT);
-	}
-
 	/**
 	 * 
 	 * @Title: AllJsonUtil
@@ -96,6 +45,40 @@ public class JsonUtils
 	}
 
 	/**
+	 * 创建只输出初始值被改变的属性到Json字符串的Mapper, 最节约的存储方式，建议在内部接口中使用。
+	 * 
+	 * @return 只输出初始值被改变的属性到Json字符串的Mapper * <per> Exp data
+	 *         {"tenantId":null,"pageNo":1,"pageSize"
+	 *         :15,"totalRecord":0,"totalPage":0,
+	 *         "results":null,"id":11,"username":null,"password":"ddd"}
+	 * 
+	 *         result: String json=JsonUtils.nonDefaultJsonUtil().toJson(user);
+	 *         {"pageNo":2,"password":"ddd222"} <per>
+	 */
+	public static JsonUtils nonDefaultJsonUtil()
+	{
+		return new JsonUtils(Include.NON_DEFAULT);
+	}
+
+	/**
+	 * 创建只输出非Null且非Empty(如List.isEmpty)的属性到Json字符串的Mapper,建议在外部接口中使用。
+	 * 
+	 * @return 只输出非Null且非Empty的属性到Json字符串的Mapper * <per> Exp data
+	 *         {"tenantId":null,"pageNo":1,"pageSize"
+	 *         :15,"totalRecord":0,"totalPage":0,
+	 *         "results":null,"id":11,"username":null,"password":"ddd"}
+	 * 
+	 *         result: String json=JsonUtils.nonEmptyJsonUtil().toJson(user);
+	 *         {"pageNo":1,"pageSize":15,"totalRecord":0,"totalPage":0,"id":11,
+	 *         "username":"xxxx","password":"ddd"} <per>
+	 * 
+	 */
+	public static JsonUtils nonEmptyJsonUtil()
+	{
+		return new JsonUtils(Include.NON_EMPTY);
+	}
+
+	/**
 	 * 
 	 * @Title: NoNullJsonUtil
 	 * @Description: 获取非Null的属性值 <per> Exp data
@@ -115,24 +98,41 @@ public class JsonUtils
 		return new JsonUtils(Include.NON_NULL);
 	}
 
-	/**
-	 * Object可以是POJO，也可以是Collection或数组。 如果对象为Null, 返回"null". 如果集合为空集合, 返回"[]".
-	 * 
-	 * @param object
-	 * @return
-	 */
+	private ObjectMapper mapper;
 
-	public String toJson(Object object)
+	public JsonUtils(Include include)
 	{
-		try
+		mapper = new ObjectMapper();
+		// 设置输出时包含属性的风格
+		if (include != null)
 		{
-			return this.mapper.writeValueAsString(object);
+			mapper.setSerializationInclusion(include);
 		}
-		catch (IOException e)
-		{
-			logger.warn("write to json string error:" + object, e);
-		}
-		return null;
+		// 设置输入时忽略在JSON字符串中存在但Java对象实际没有的属性
+		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		// 设置默认DateFormat yyyy-MM-dd HH:mm:ss
+		mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+		this.mapper.registerModule(new GuavaModule());
+	}
+
+	/**
+	 * 构造泛型的Collection Type如: ArrayList<MyBean>,
+	 * 则调用constructCollectionType(ArrayList.class,MyBean.class)
+	 * HashMap<String,MyBean>, 则调用(HashMap.class,String.class, MyBean.class)
+	 */
+	public JavaType createCollectionType(Class<?> collectionClass, Class<?>[] elementClasses)
+	{
+		return this.mapper.getTypeFactory().constructParametricType(collectionClass, elementClasses);
+	}
+
+	/**
+	 * 設定是否使用Enum的toString函數來讀寫Enum, 為False時時使用Enum的name()函數來讀寫Enum, 默認為False.
+	 * 注意本函數一定要在Mapper創建後, 所有的讀寫動作之前調用.
+	 */
+	public void enableEnumUseToString()
+	{
+		this.mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+		this.mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
 	}
 
 	/**
@@ -156,12 +156,11 @@ public class JsonUtils
 	 * 		SysUser user=JsonUtils.AllJsonUtil.fromJson(jsonStr, SysUser.class);
 	 * </pre>
 	 * @param: <p>
-	 *         @param jsonString
+	 * @param jsonString
 	 * @param: <p>
-	 *         @param clazz
+	 * @param clazz
 	 * @param: <p>
-	 *         @return
-	 *         <p>
+	 * @return <p>
 	 * @date: 2014年5月16日
 	 * @return: T
 	 * @throws
@@ -209,6 +208,52 @@ public class JsonUtils
 		return null;
 	}
 
+	/**
+	 * 取出Mapper做进一步的设置或使用其他序列化API
+	 * 
+	 * @return
+	 */
+	public ObjectMapper getMapper()
+	{
+		return this.mapper;
+	}
+
+	/**
+	 * 设定格式化Date类型数据格式 在所有读写动作之前调用
+	 */
+	public void setDateFormat(String dateFormat)
+	{
+		mapper.setDateFormat(new SimpleDateFormat(dateFormat));
+	}
+
+	/**
+	 * Object可以是POJO，也可以是Collection或数组。 如果对象为Null, 返回"null". 如果集合为空集合, 返回"[]".
+	 * 
+	 * @param object
+	 * @return
+	 */
+
+	public String toJson(Object object)
+	{
+		try
+		{
+			return this.mapper.writeValueAsString(object);
+		}
+		catch (IOException e)
+		{
+			logger.warn("write to json string error:" + object, e);
+		}
+		return null;
+	}
+
+	/*
+	 * 输出JSONP格式数据
+	 */
+	public String toJsonP(String functionName, Object object)
+	{
+		return toJson(new JSONPObject(functionName, object));
+	}
+
 	public JsonNode treeFromJson(String jsonString) throws IOException
 	{
 		return this.mapper.readTree(jsonString);
@@ -217,16 +262,6 @@ public class JsonUtils
 	public <T> T treeToValue(JsonNode node, Class<T> clazz) throws JsonProcessingException
 	{
 		return this.mapper.treeToValue(node, clazz);
-	}
-
-	/**
-	 * 构造泛型的Collection Type如: ArrayList<MyBean>,
-	 * 则调用constructCollectionType(ArrayList.class,MyBean.class)
-	 * HashMap<String,MyBean>, 则调用(HashMap.class,String.class, MyBean.class)
-	 */
-	public JavaType createCollectionType(Class<?> collectionClass, Class<?>[] elementClasses)
-	{
-		return this.mapper.getTypeFactory().constructParametricType(collectionClass, elementClasses);
 	}
 
 	/**
@@ -252,41 +287,5 @@ public class JsonUtils
 			logger.warn("update json string:" + jsonString + " to object:" + object + " error.", e);
 		}
 		return null;
-	}
-
-	/*
-	 * 输出JSONP格式数据
-	 */
-	public String toJsonP(String functionName, Object object)
-	{
-		return toJson(new JSONPObject(functionName, object));
-	}
-
-	/**
-	 * 設定是否使用Enum的toString函數來讀寫Enum, 為False時時使用Enum的name()函數來讀寫Enum, 默認為False.
-	 * 注意本函數一定要在Mapper創建後, 所有的讀寫動作之前調用.
-	 */
-	public void enableEnumUseToString()
-	{
-		this.mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-		this.mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-	}
-
-	/**
-	 * 设定格式化Date类型数据格式 在所有读写动作之前调用
-	 */
-	public void setDateFormat(String dateFormat)
-	{
-		mapper.setDateFormat(new SimpleDateFormat(dateFormat));
-	}
-
-	/**
-	 * 取出Mapper做进一步的设置或使用其他序列化API
-	 * 
-	 * @return
-	 */
-	public ObjectMapper getMapper()
-	{
-		return this.mapper;
 	}
 }

@@ -13,17 +13,12 @@ package pmis.commons.codec;
  */
 public class JsonResponseException extends RuntimeException
 {
-	private int status = 404;
-
 	private String message = "unknown exception";
+
+	private int status = 404;
 
 	public JsonResponseException()
 	{
-	}
-
-	public JsonResponseException(String message)
-	{
-		this.message = message;
 	}
 
 	public JsonResponseException(int status, String message)
@@ -39,17 +34,22 @@ public class JsonResponseException extends RuntimeException
 		this.status = status;
 	}
 
-	public JsonResponseException(String message, Throwable cause)
-	{
-		super(message, cause);
-		this.message = message;
-	}
-
 	public JsonResponseException(int status, Throwable cause)
 	{
 		super(cause);
 		this.message = cause.getMessage();
 		this.status = status;
+	}
+
+	public JsonResponseException(String message)
+	{
+		this.message = message;
+	}
+
+	public JsonResponseException(String message, Throwable cause)
+	{
+		super(message, cause);
+		this.message = message;
 	}
 
 	public JsonResponseException(Throwable cause)
@@ -58,23 +58,23 @@ public class JsonResponseException extends RuntimeException
 		this.message = cause.getMessage();
 	}
 
-	public int getStatus()
-	{
-		return this.status;
-	}
-
-	public void setStatus(int status)
-	{
-		this.status = status;
-	}
-
 	public String getMessage()
 	{
 		return this.message;
 	}
 
+	public int getStatus()
+	{
+		return this.status;
+	}
+
 	public void setMessage(String message)
 	{
 		this.message = message;
+	}
+
+	public void setStatus(int status)
+	{
+		this.status = status;
 	}
 }

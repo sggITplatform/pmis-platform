@@ -6,6 +6,5 @@
 	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Activiti Designer Extensions"/>
 	<classpathentry kind="var" path="servlet-api"/>
-	<classpathentry kind="lib" path="lib/kaptcha-2.3.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

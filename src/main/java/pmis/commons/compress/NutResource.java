@@ -22,24 +22,6 @@ public abstract class NutResource implements Comparable<NutResource>
 
 	protected String name;
 
-	public String getName()
-	{
-		return name;
-	}
-
-	public NutResource setName(String name)
-	{
-		this.name = name;
-		return this;
-	}
-
-	public abstract InputStream getInputStream() throws IOException;
-
-	public Reader getReader() throws IOException
-	{
-		return StreamUtils.utf8r(getInputStream());
-	}
-
 	public int compareTo(NutResource o)
 	{
 		if (o == null)
@@ -61,10 +43,28 @@ public abstract class NutResource implements Comparable<NutResource>
 		return false;
 	}
 
+	public abstract InputStream getInputStream() throws IOException;
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public Reader getReader() throws IOException
+	{
+		return StreamUtils.utf8r(getInputStream());
+	}
+
 	@Override
 	public int hashCode()
 	{
 		return null == name ? "NULL".hashCode() : name.hashCode();
+	}
+
+	public NutResource setName(String name)
+	{
+		this.name = name;
+		return this;
 	}
 
 	@Override

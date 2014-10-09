@@ -36,6 +36,85 @@ public abstract class StreamUtils
 {
 	private static final int BUF_SIZE = 8192;
 
+	private static final byte[] UTF_BOM = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+
+	/**
+	 * 获取File对象输入流,即使在Jar文件中一样工作良好!! <b>强烈推荐</b>
+	 * 
+	 */
+	protected static InputStream _input(File file) throws IOException
+	{
+		if (file.exists())
+		{
+			return new FileInputStream(file);
+		}
+		if (isInJar(file))
+		{
+			NutResource nutResource = makeJarNutResource(file);
+			if (nutResource != null)
+			{
+				return nutResource.getInputStream();
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 为一个输入流包裹一个缓冲流。如果这个输入流本身就是缓冲流，则直接返回
+	 * 
+	 * @param ins
+	 *            输入流。
+	 * @return 缓冲输入流
+	 */
+	public static BufferedInputStream buff(InputStream ins)
+	{
+		if (ins instanceof BufferedInputStream)
+			return (BufferedInputStream) ins;
+		return new BufferedInputStream(ins);
+	}
+
+	/**
+	 * 为一个输出流包裹一个缓冲流。如果这个输出流本身就是缓冲流，则直接返回
+	 * 
+	 * @param ops
+	 *            输出流。
+	 * @return 缓冲输出流
+	 */
+	public static BufferedOutputStream buff(OutputStream ops)
+	{
+		if (ops instanceof BufferedOutputStream)
+			return (BufferedOutputStream) ops;
+		return new BufferedOutputStream(ops);
+	}
+
+	/**
+	 * 为一个文本输入流包裹一个缓冲流。如果这个输入流本身就是缓冲流，则直接返回
+	 * 
+	 * @param reader
+	 *            文本输入流。
+	 * @return 缓冲文本输入流
+	 */
+	public static BufferedReader buffr(Reader reader)
+	{
+		if (reader instanceof BufferedReader)
+			return (BufferedReader) reader;
+		return new BufferedReader(reader);
+	}
+
+	/**
+	 * 为一个文本输出流包裹一个缓冲流。如果这个文本输出流本身就是缓冲流，则直接返回
+	 * 
+	 * @param ops
+	 *            文本输出流。
+	 * @return 缓冲文本输出流
+	 */
+	public static BufferedWriter buffw(Writer ops)
+	{
+		if (ops instanceof BufferedWriter)
+			return (BufferedWriter) ops;
+		return new BufferedWriter(ops);
+	}
+
 	/**
 	 * 判断两个输入流是否严格相等
 	 */
@@ -51,222 +130,176 @@ public abstract class StreamUtils
 	}
 
 	/**
-	 * 将一段文本全部写入一个writer。
-	 * <p>
-	 * <b style=color:red>注意</b>，它并不会关闭输出流
+	 * 根据一个文件路径建立一个输入流
 	 * 
-	 * @param writer
-	 * 
-	 * @param cs
-	 *            文本
-	 * @throws IOException
+	 * @param file
+	 *            文件
+	 * @return 输入流
 	 */
-	public static void write(Writer writer, CharSequence cs) throws IOException
-	{
-		if (null != cs && null != writer)
-		{
-			writer.write(cs.toString());
-			writer.flush();
-		}
-	}
-
-	/**
-	 * 将一段文本全部写入一个writer。
-	 * <p>
-	 * <b style=color:red>注意</b>，它会关闭输出流
-	 * 
-	 * @param writer
-	 *            输出流
-	 * @param cs
-	 *            文本
-	 */
-	public static void writeAndClose(Writer writer, CharSequence cs)
+	public static InputStream fileIn(File file)
 	{
 		try
 		{
-			write(writer, cs);
+			return buff(StreamUtils._input(file));
 		}
 		catch (IOException e)
 		{
 			throw ThrowableUtils.wrapThrow(e);
 		}
-		finally
-		{
-			safeClose(writer);
-		}
 	}
 
 	/**
-	 * 将输出流写入一个输出流。块大小为 8192
-	 * <p>
-	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
+	 * 根据一个文件路径建立一个输入流
 	 * 
-	 * @param ops
-	 *            输出流
-	 * @param ins
-	 *            输入流
-	 * 
-	 * @return 写入的字节数
-	 * @throws IOException
+	 * @param path
+	 *            文件路径
+	 * @return 输入流
 	 */
-	public static int write(OutputStream ops, InputStream ins) throws IOException
+	public static InputStream fileIn(String path)
 	{
-		return write(ops, ins, BUF_SIZE);
-	}
-
-	/**
-	 * 将输出流写入一个输出流。
-	 * <p>
-	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
-	 * 
-	 * @param ops
-	 *            输出流
-	 * @param ins
-	 *            输入流
-	 * @param bufferSize
-	 *            缓冲块大小
-	 * 
-	 * @return 写入的字节数
-	 * 
-	 * @throws IOException
-	 */
-	public static int write(OutputStream ops, InputStream ins, int bufferSize) throws IOException
-	{
-		if (null == ops || null == ins)
-			return 0;
-
-		byte[] buf = new byte[bufferSize];
-		int len;
-		int re = 0;
-		while (-1 != (len = ins.read(buf)))
+		InputStream ins = FileUtils.findFileAsStream(path);
+		if (null == ins)
 		{
-			re += len;
-			ops.write(buf, 0, len);
+			File f = FileUtils.findFile(path);
+			if (null != f)
+				try
+				{
+					ins = StreamUtils._input(f);
+				}
+				catch (IOException e)
+				{
+				}
 		}
-		return re;
+		return buff(ins);
 	}
 
 	/**
-	 * 将输出流写入一个输出流。块大小为 8192
-	 * <p>
-	 * <b style=color:red>注意</b>，它会关闭输入/出流
+	 * 根据一个文件路径建立一个 UTF-8 文本输入流 <b>警告!! 本方法会预先读取3个字节以判断该文件是否存在BOM头</b>
+	 * <p/>
+	 * <b>警告!! 如果存在BOM头,则自动跳过</b>
+	 * <p/>
 	 * 
-	 * @param ops
-	 *            输出流
-	 * @param ins
-	 *            输入流
-	 * @return 写入的字节数
+	 * @param file
+	 *            文件
+	 * @return 文本输入流
 	 */
-	public static int writeAndClose(OutputStream ops, InputStream ins)
+	public static Reader fileInr(File file)
+	{
+		return utf8r(fileIn(file));
+	}
+
+	/**
+	 * 根据一个文件路径建立一个 UTF-8文本输入流 <b>警告!! 本方法会预先读取3个字节以判断该文件是否存在BOM头</b>
+	 * <p/>
+	 * <b>警告!! 如果存在BOM头,则自动跳过</b>
+	 * <p/>
+	 * 
+	 * @param path
+	 *            文件路径
+	 * @return 文本输入流
+	 */
+	public static Reader fileInr(String path)
+	{
+		return utf8r(fileIn(path));
+	}
+
+	/**
+	 * 根据一个文件建立一个输出流
+	 * 
+	 * @param file
+	 *            文件
+	 * @return 输出流
+	 */
+	public static OutputStream fileOut(File file)
 	{
 		try
 		{
-			return write(ops, ins);
+			return buff(new FileOutputStream(file));
 		}
-		catch (IOException e)
+		catch (FileNotFoundException e)
 		{
 			throw ThrowableUtils.wrapThrow(e);
 		}
-		finally
-		{
-			safeClose(ops);
-			safeClose(ins);
-		}
 	}
 
 	/**
-	 * 将文本输出流写入一个文本输出流。块大小为 8192
-	 * <p>
-	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
+	 * 根据一个文件路径建立一个输出流
 	 * 
-	 * @param writer
-	 *            输出流
-	 * @param reader
-	 *            输入流
-	 * @throws IOException
+	 * @param path
+	 *            文件路径
+	 * @return 输出流
 	 */
-	public static void write(Writer writer, Reader reader) throws IOException
+	public static OutputStream fileOut(String path)
 	{
-		if (null == writer || null == reader)
-			return;
-
-		char[] cbuf = new char[BUF_SIZE];
-		int len;
-		while (-1 != (len = reader.read(cbuf)))
-		{
-			writer.write(cbuf, 0, len);
-		}
+		return fileOut(new File(path));
 	}
 
 	/**
-	 * 将文本输出流写入一个文本输出流。块大小为 8192
-	 * <p>
-	 * <b style=color:red>注意</b>，它会关闭输入/出流
+	 * 根据一个文件建立一个 UTF-8 文本输出流
 	 * 
-	 * @param writer
-	 *            输出流
-	 * @param reader
-	 *            输入流
+	 * @param file
+	 *            文件
+	 * @return 输出流
 	 */
-	public static void writeAndClose(Writer writer, Reader reader)
+	public static Writer fileOutw(File file)
 	{
+		return utf8w(fileOut(file));
+	}
+
+	/**
+	 * 根据一个文件路径建立一个 UTF-8 文本输出流
+	 * 
+	 * @param path
+	 *            文件路径
+	 * @return 文本输出流
+	 */
+	public static Writer fileOutw(String path)
+	{
+		return fileOutw(new File(path));
+	}
+
+	public static boolean isInJar(File file)
+	{
+		return isInJar(file.getAbsolutePath());
+	}
+
+	public static boolean isInJar(String filePath)
+	{
+		return filePath.contains(".jar!");
+	}
+
+	public static NutResource makeJarNutResource(File file)
+	{
+		return makeJarNutResource(file.getAbsolutePath());
+	}
+
+	public static NutResource makeJarNutResource(String filePath)
+	{
+		JarEntryInfo jeInfo = new JarEntryInfo(filePath);
 		try
 		{
-			write(writer, reader);
+			JarFile jar = new JarFile(jeInfo.getJarPath());
+			JarEntry entry = jar.getJarEntry(jeInfo.getEntryName());
+			if (entry != null)
+			{
+				// JDK里面判断实体是否为文件夹的方法非常不靠谱 by jon
+				if (entry.getName().endsWith("/"))// 明显是文件夹
+					return null;
+				JarEntry e2 = jar.getJarEntry(jeInfo.getEntryName() + "/");
+				if (e2 != null) // 加个/,还是能找到?! 那肯定是文件夹了!
+					return null;
+				return new JarEntryResource(jeInfo);
+			}
 		}
 		catch (IOException e)
 		{
-			throw ThrowableUtils.wrapThrow(e);
 		}
-		finally
-		{
-			safeClose(writer);
-			safeClose(reader);
-		}
+		return null;
 	}
 
-	/**
-	 * 将一个字节数组写入一个输出流。
-	 * <p>
-	 * <b style=color:red>注意</b>，它并不会关闭输出流
-	 * 
-	 * @param ops
-	 *            输出流
-	 * @param bytes
-	 *            字节数组
-	 * @throws IOException
-	 */
-	public static void write(OutputStream ops, byte[] bytes) throws IOException
+	public static InputStream nullInputStream()
 	{
-		if (null == ops || null == bytes)
-			return;
-		ops.write(bytes);
-	}
-
-	/**
-	 * 将一个字节数组写入一个输出流。
-	 * <p>
-	 * <b style=color:red>注意</b>，它会关闭输出流
-	 * 
-	 * @param ops
-	 *            输出流
-	 * @param bytes
-	 *            字节数组
-	 */
-	public static void writeAndClose(OutputStream ops, byte[] bytes)
-	{
-		try
-		{
-			write(ops, bytes);
-		}
-		catch (IOException e)
-		{
-			throw ThrowableUtils.wrapThrow(e);
-		}
-		finally
-		{
-			safeClose(ops);
-		}
+		return new NullInputStream();
 	}
 
 	/**
@@ -351,138 +384,6 @@ public abstract class StreamUtils
 	}
 
 	/**
-	 * 为一个输入流包裹一个缓冲流。如果这个输入流本身就是缓冲流，则直接返回
-	 * 
-	 * @param ins
-	 *            输入流。
-	 * @return 缓冲输入流
-	 */
-	public static BufferedInputStream buff(InputStream ins)
-	{
-		if (ins instanceof BufferedInputStream)
-			return (BufferedInputStream) ins;
-		return new BufferedInputStream(ins);
-	}
-
-	/**
-	 * 为一个输出流包裹一个缓冲流。如果这个输出流本身就是缓冲流，则直接返回
-	 * 
-	 * @param ops
-	 *            输出流。
-	 * @return 缓冲输出流
-	 */
-	public static BufferedOutputStream buff(OutputStream ops)
-	{
-		if (ops instanceof BufferedOutputStream)
-			return (BufferedOutputStream) ops;
-		return new BufferedOutputStream(ops);
-	}
-
-	/**
-	 * 为一个文本输入流包裹一个缓冲流。如果这个输入流本身就是缓冲流，则直接返回
-	 * 
-	 * @param reader
-	 *            文本输入流。
-	 * @return 缓冲文本输入流
-	 */
-	public static BufferedReader buffr(Reader reader)
-	{
-		if (reader instanceof BufferedReader)
-			return (BufferedReader) reader;
-		return new BufferedReader(reader);
-	}
-
-	/**
-	 * 为一个文本输出流包裹一个缓冲流。如果这个文本输出流本身就是缓冲流，则直接返回
-	 * 
-	 * @param ops
-	 *            文本输出流。
-	 * @return 缓冲文本输出流
-	 */
-	public static BufferedWriter buffw(Writer ops)
-	{
-		if (ops instanceof BufferedWriter)
-			return (BufferedWriter) ops;
-		return new BufferedWriter(ops);
-	}
-
-	/**
-	 * 根据一个文件路径建立一个输入流
-	 * 
-	 * @param path
-	 *            文件路径
-	 * @return 输入流
-	 */
-	public static InputStream fileIn(String path)
-	{
-		InputStream ins = FileUtils.findFileAsStream(path);
-		if (null == ins)
-		{
-			File f = FileUtils.findFile(path);
-			if (null != f)
-				try
-				{
-					ins = StreamUtils._input(f);
-				}
-				catch (IOException e)
-				{
-				}
-		}
-		return buff(ins);
-	}
-
-	/**
-	 * 根据一个文件路径建立一个输入流
-	 * 
-	 * @param file
-	 *            文件
-	 * @return 输入流
-	 */
-	public static InputStream fileIn(File file)
-	{
-		try
-		{
-			return buff(StreamUtils._input(file));
-		}
-		catch (IOException e)
-		{
-			throw ThrowableUtils.wrapThrow(e);
-		}
-	}
-
-	/**
-	 * 根据一个文件路径建立一个 UTF-8文本输入流 <b>警告!! 本方法会预先读取3个字节以判断该文件是否存在BOM头</b>
-	 * <p/>
-	 * <b>警告!! 如果存在BOM头,则自动跳过</b>
-	 * <p/>
-	 * 
-	 * @param path
-	 *            文件路径
-	 * @return 文本输入流
-	 */
-	public static Reader fileInr(String path)
-	{
-		return utf8r(fileIn(path));
-	}
-
-	/**
-	 * 根据一个文件路径建立一个 UTF-8 文本输入流 <b>警告!! 本方法会预先读取3个字节以判断该文件是否存在BOM头</b>
-	 * <p/>
-	 * <b>警告!! 如果存在BOM头,则自动跳过</b>
-	 * <p/>
-	 * 
-	 * @param file
-	 *            文件
-	 * @return 文本输入流
-	 */
-	public static Reader fileInr(File file)
-	{
-		return utf8r(fileIn(file));
-	}
-
-	private static final byte[] UTF_BOM = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
-
-	/**
 	 * 判断并移除UTF-8的BOM头
 	 */
 	public static InputStream utf8filte(InputStream in)
@@ -508,61 +409,6 @@ public abstract class StreamUtils
 		}
 	}
 
-	/**
-	 * 根据一个文件路径建立一个输出流
-	 * 
-	 * @param path
-	 *            文件路径
-	 * @return 输出流
-	 */
-	public static OutputStream fileOut(String path)
-	{
-		return fileOut(new File(path));
-	}
-
-	/**
-	 * 根据一个文件建立一个输出流
-	 * 
-	 * @param file
-	 *            文件
-	 * @return 输出流
-	 */
-	public static OutputStream fileOut(File file)
-	{
-		try
-		{
-			return buff(new FileOutputStream(file));
-		}
-		catch (FileNotFoundException e)
-		{
-			throw ThrowableUtils.wrapThrow(e);
-		}
-	}
-
-	/**
-	 * 根据一个文件路径建立一个 UTF-8 文本输出流
-	 * 
-	 * @param path
-	 *            文件路径
-	 * @return 文本输出流
-	 */
-	public static Writer fileOutw(String path)
-	{
-		return fileOutw(new File(path));
-	}
-
-	/**
-	 * 根据一个文件建立一个 UTF-8 文本输出流
-	 * 
-	 * @param file
-	 *            文件
-	 * @return 输出流
-	 */
-	public static Writer fileOutw(File file)
-	{
-		return utf8w(fileOut(file));
-	}
-
 	public static Reader utf8r(InputStream is)
 	{
 		return new InputStreamReader(utf8filte(is), EncodingUtils.CHARSET_UTF8);
@@ -573,68 +419,222 @@ public abstract class StreamUtils
 		return new OutputStreamWriter(os, EncodingUtils.CHARSET_UTF8);
 	}
 
-	public static InputStream nullInputStream()
+	/**
+	 * 将一个字节数组写入一个输出流。
+	 * <p>
+	 * <b style=color:red>注意</b>，它并不会关闭输出流
+	 * 
+	 * @param ops
+	 *            输出流
+	 * @param bytes
+	 *            字节数组
+	 * @throws IOException
+	 */
+	public static void write(OutputStream ops, byte[] bytes) throws IOException
 	{
-		return new NullInputStream();
+		if (null == ops || null == bytes)
+			return;
+		ops.write(bytes);
 	}
 
 	/**
-	 * 获取File对象输入流,即使在Jar文件中一样工作良好!! <b>强烈推荐</b>
+	 * 将输出流写入一个输出流。块大小为 8192
+	 * <p>
+	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
 	 * 
+	 * @param ops
+	 *            输出流
+	 * @param ins
+	 *            输入流
+	 * 
+	 * @return 写入的字节数
+	 * @throws IOException
 	 */
-	protected static InputStream _input(File file) throws IOException
+	public static int write(OutputStream ops, InputStream ins) throws IOException
 	{
-		if (file.exists())
+		return write(ops, ins, BUF_SIZE);
+	}
+
+	/**
+	 * 将输出流写入一个输出流。
+	 * <p>
+	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
+	 * 
+	 * @param ops
+	 *            输出流
+	 * @param ins
+	 *            输入流
+	 * @param bufferSize
+	 *            缓冲块大小
+	 * 
+	 * @return 写入的字节数
+	 * 
+	 * @throws IOException
+	 */
+	public static int write(OutputStream ops, InputStream ins, int bufferSize) throws IOException
+	{
+		if (null == ops || null == ins)
+			return 0;
+
+		byte[] buf = new byte[bufferSize];
+		int len;
+		int re = 0;
+		while (-1 != (len = ins.read(buf)))
 		{
-			return new FileInputStream(file);
+			re += len;
+			ops.write(buf, 0, len);
 		}
-		if (isInJar(file))
+		return re;
+	}
+
+	/**
+	 * 将一段文本全部写入一个writer。
+	 * <p>
+	 * <b style=color:red>注意</b>，它并不会关闭输出流
+	 * 
+	 * @param writer
+	 * 
+	 * @param cs
+	 *            文本
+	 * @throws IOException
+	 */
+	public static void write(Writer writer, CharSequence cs) throws IOException
+	{
+		if (null != cs && null != writer)
 		{
-			NutResource nutResource = makeJarNutResource(file);
-			if (nutResource != null)
-			{
-				return nutResource.getInputStream();
-			}
+			writer.write(cs.toString());
+			writer.flush();
 		}
-		return null;
 	}
 
-	public static boolean isInJar(File file)
+	/**
+	 * 将文本输出流写入一个文本输出流。块大小为 8192
+	 * <p>
+	 * <b style=color:red>注意</b>，它并不会关闭输入/出流
+	 * 
+	 * @param writer
+	 *            输出流
+	 * @param reader
+	 *            输入流
+	 * @throws IOException
+	 */
+	public static void write(Writer writer, Reader reader) throws IOException
 	{
-		return isInJar(file.getAbsolutePath());
+		if (null == writer || null == reader)
+			return;
+
+		char[] cbuf = new char[BUF_SIZE];
+		int len;
+		while (-1 != (len = reader.read(cbuf)))
+		{
+			writer.write(cbuf, 0, len);
+		}
 	}
 
-	public static boolean isInJar(String filePath)
+	/**
+	 * 将一个字节数组写入一个输出流。
+	 * <p>
+	 * <b style=color:red>注意</b>，它会关闭输出流
+	 * 
+	 * @param ops
+	 *            输出流
+	 * @param bytes
+	 *            字节数组
+	 */
+	public static void writeAndClose(OutputStream ops, byte[] bytes)
 	{
-		return filePath.contains(".jar!");
-	}
-
-	public static NutResource makeJarNutResource(File file)
-	{
-		return makeJarNutResource(file.getAbsolutePath());
-	}
-
-	public static NutResource makeJarNutResource(String filePath)
-	{
-		JarEntryInfo jeInfo = new JarEntryInfo(filePath);
 		try
 		{
-			JarFile jar = new JarFile(jeInfo.getJarPath());
-			JarEntry entry = jar.getJarEntry(jeInfo.getEntryName());
-			if (entry != null)
-			{
-				// JDK里面判断实体是否为文件夹的方法非常不靠谱 by jon
-				if (entry.getName().endsWith("/"))// 明显是文件夹
-					return null;
-				JarEntry e2 = jar.getJarEntry(jeInfo.getEntryName() + "/");
-				if (e2 != null) // 加个/,还是能找到?! 那肯定是文件夹了!
-					return null;
-				return new JarEntryResource(jeInfo);
-			}
+			write(ops, bytes);
 		}
 		catch (IOException e)
 		{
+			throw ThrowableUtils.wrapThrow(e);
 		}
-		return null;
+		finally
+		{
+			safeClose(ops);
+		}
+	}
+
+	/**
+	 * 将输出流写入一个输出流。块大小为 8192
+	 * <p>
+	 * <b style=color:red>注意</b>，它会关闭输入/出流
+	 * 
+	 * @param ops
+	 *            输出流
+	 * @param ins
+	 *            输入流
+	 * @return 写入的字节数
+	 */
+	public static int writeAndClose(OutputStream ops, InputStream ins)
+	{
+		try
+		{
+			return write(ops, ins);
+		}
+		catch (IOException e)
+		{
+			throw ThrowableUtils.wrapThrow(e);
+		}
+		finally
+		{
+			safeClose(ops);
+			safeClose(ins);
+		}
+	}
+
+	/**
+	 * 将一段文本全部写入一个writer。
+	 * <p>
+	 * <b style=color:red>注意</b>，它会关闭输出流
+	 * 
+	 * @param writer
+	 *            输出流
+	 * @param cs
+	 *            文本
+	 */
+	public static void writeAndClose(Writer writer, CharSequence cs)
+	{
+		try
+		{
+			write(writer, cs);
+		}
+		catch (IOException e)
+		{
+			throw ThrowableUtils.wrapThrow(e);
+		}
+		finally
+		{
+			safeClose(writer);
+		}
+	}
+
+	/**
+	 * 将文本输出流写入一个文本输出流。块大小为 8192
+	 * <p>
+	 * <b style=color:red>注意</b>，它会关闭输入/出流
+	 * 
+	 * @param writer
+	 *            输出流
+	 * @param reader
+	 *            输入流
+	 */
+	public static void writeAndClose(Writer writer, Reader reader)
+	{
+		try
+		{
+			write(writer, reader);
+		}
+		catch (IOException e)
+		{
+			throw ThrowableUtils.wrapThrow(e);
+		}
+		finally
+		{
+			safeClose(writer);
+			safeClose(reader);
+		}
 	}
 }

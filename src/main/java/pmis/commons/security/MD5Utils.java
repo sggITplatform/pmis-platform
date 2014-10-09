@@ -22,30 +22,77 @@ import java.security.NoSuchAlgorithmException;
  */
 public abstract class MD5Utils
 {
-	public static String md5(byte[] plainByte)
+	/**
+	 * 
+	 * @Title: getMD5
+	 * @author: wuwh
+	 * @CreateDate: 2014-4-2 下午2:45:04
+	 * @UpdateUser: wuwh
+	 * @UpdateDate: 2014-4-2 下午2:45:04
+	 * @UpdateRemark: 说明本次修改内容
+	 * @Description: 字符串加密
+	 * @version: V1.0
+	 * @param fileName
+	 * @return
+	 */
+	public static String getMD5(final String fileName)
 	{
-		StringBuffer rtnVal = new StringBuffer();
+		// create file object
+		final File file = new File(fileName);
+		FileInputStream fin = null;
 		try
 		{
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(plainByte);
-			byte b[] = md.digest();
-			int i;
-			for (int offset = 0; offset < b.length; offset++)
+			// read file content into byte array
+			fin = new FileInputStream(file);
+			final byte fileContent[] = new byte[(int) file.length()];
+			fin.read(fileContent);
+			// Generate MessageDigest
+			final MessageDigest algorithm = MessageDigest.getInstance("MD5");
+			algorithm.reset();
+			algorithm.update(fileContent);
+			final byte messageDigest[] = algorithm.digest();
+
+			// Generate string md5 values
+			String md5 = "";
+			for (final byte element : messageDigest)
 			{
-				i = b[offset];
-				if (i < 0)
-					i += 256;
-				if (i < 16)
-					rtnVal.append("0");
-				rtnVal.append(Integer.toHexString(i));
+				final String hex = Integer.toHexString(0xFF & element);
+				if (hex.length() == 1)
+				{
+					md5 += "0";
+				}
+				md5 += hex;
+			}
+			// System.out.println("md5 : " + md5);
+			return md5;
+		}
+		catch (final FileNotFoundException e)
+		{
+			System.out.println("File not found" + e);
+		}
+		catch (final IOException ioe)
+		{
+			System.out.println("Exception while reading the file " + ioe);
+		}
+		catch (final NoSuchAlgorithmException ale)
+		{
+			System.out.println("Exception while generating message digest. " + ale);
+		}
+		finally
+		{
+			try
+			{
+				if (fin != null)
+				{
+					fin.close();
+					fin = null;
+				}
+			}
+			catch (Exception e)
+			{
 			}
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		return rtnVal.toString();
+		return null;
 	}
 
 	/**
@@ -147,76 +194,29 @@ public abstract class MD5Utils
 		return rtnVal.toString();
 	}
 
-	/**
-	 * 
-	 * @Title: getMD5
-	 * @author: wuwh
-	 * @CreateDate: 2014-4-2 下午2:45:04
-	 * @UpdateUser: wuwh
-	 * @UpdateDate: 2014-4-2 下午2:45:04
-	 * @UpdateRemark: 说明本次修改内容
-	 * @Description: 字符串加密
-	 * @version: V1.0
-	 * @param fileName
-	 * @return
-	 */
-	public static String getMD5(final String fileName)
+	public static String md5(byte[] plainByte)
 	{
-		// create file object
-		final File file = new File(fileName);
-		FileInputStream fin = null;
+		StringBuffer rtnVal = new StringBuffer();
 		try
 		{
-			// read file content into byte array
-			fin = new FileInputStream(file);
-			final byte fileContent[] = new byte[(int) file.length()];
-			fin.read(fileContent);
-			// Generate MessageDigest
-			final MessageDigest algorithm = MessageDigest.getInstance("MD5");
-			algorithm.reset();
-			algorithm.update(fileContent);
-			final byte messageDigest[] = algorithm.digest();
-
-			// Generate string md5 values
-			String md5 = "";
-			for (final byte element : messageDigest)
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(plainByte);
+			byte b[] = md.digest();
+			int i;
+			for (int offset = 0; offset < b.length; offset++)
 			{
-				final String hex = Integer.toHexString(0xFF & element);
-				if (hex.length() == 1)
-				{
-					md5 += "0";
-				}
-				md5 += hex;
-			}
-			// System.out.println("md5 : " + md5);
-			return md5;
-		}
-		catch (final FileNotFoundException e)
-		{
-			System.out.println("File not found" + e);
-		}
-		catch (final IOException ioe)
-		{
-			System.out.println("Exception while reading the file " + ioe);
-		}
-		catch (final NoSuchAlgorithmException ale)
-		{
-			System.out.println("Exception while generating message digest. " + ale);
-		}
-		finally
-		{
-			try
-			{
-				if (fin != null)
-				{
-					fin.close();
-					fin = null;
-				}
-			}
-			catch (Exception e)
-			{
+				i = b[offset];
+				if (i < 0)
+					i += 256;
+				if (i < 16)
+					rtnVal.append("0");
+				rtnVal.append(Integer.toHexString(i));
 			}
 		}
-		return null;
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return rtnVal.toString();
 	}
 }

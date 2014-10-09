@@ -92,6 +92,14 @@ public abstract class EscapeUtils
 		return sbuf.toString();
 	}
 
+	public static void main(String[] args)
+	{
+		String stest = "一声笑傲江湖之曲1234 abcd[]()<+>,.~\"";
+		System.out.println(stest);
+		System.out.println(escape(stest));
+		System.out.println(unescape(escape(stest)));
+	}
+
 	/** */
 	/**
 	 * 解码 说明：本方法保证 不论参数s是否经过escape()编码，均能得到正确的“解码”结果
@@ -150,13 +158,5 @@ public abstract class EscapeUtils
 			i++;
 		}
 		return sbuf.toString();
-	}
-
-	public static void main(String[] args)
-	{
-		String stest = "一声笑傲江湖之曲1234 abcd[]()<+>,.~\"";
-		System.out.println(stest);
-		System.out.println(escape(stest));
-		System.out.println(unescape(escape(stest)));
 	}
 }

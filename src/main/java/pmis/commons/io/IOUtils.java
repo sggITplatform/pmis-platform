@@ -21,20 +21,6 @@ public abstract class IOUtils
 	private static final int BUF_SIZE = 8192;
 
 	/**
-	 * 判断两个输入流是否严格相等
-	 */
-	public static boolean equals(InputStream sA, InputStream sB) throws IOException
-	{
-		int dA;
-		while ((dA = sA.read()) != -1)
-		{
-			if (dA != sB.read())
-				return false;
-		}
-		return sB.read() == -1;
-	}
-
-	/**
 	 * 关闭一个可关闭对象，可以接受 null。如果成功关闭，返回 true，发生异常 返回 false
 	 * 
 	 * @param cb
@@ -53,6 +39,20 @@ public abstract class IOUtils
 				return false;
 			}
 		return true;
+	}
+
+	/**
+	 * 判断两个输入流是否严格相等
+	 */
+	public static boolean equals(InputStream sA, InputStream sB) throws IOException
+	{
+		int dA;
+		while ((dA = sA.read()) != -1)
+		{
+			if (dA != sB.read())
+				return false;
+		}
+		return sB.read() == -1;
 	}
 
 	public static void flush(Flushable fa)

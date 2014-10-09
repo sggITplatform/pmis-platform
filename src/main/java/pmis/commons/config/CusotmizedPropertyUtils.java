@@ -13,6 +13,11 @@ public abstract class CusotmizedPropertyUtils extends PropertyPlaceholderConfigu
 
 	private static Map<String, Object> ctxPropertiesMap;
 
+	public static Object getContextProperty(String name)
+	{
+		return ctxPropertiesMap.get(name);
+	}
+
 	@Override
 	protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props)
 			throws BeansException
@@ -25,11 +30,6 @@ public abstract class CusotmizedPropertyUtils extends PropertyPlaceholderConfigu
 			String value = props.getProperty(keyStr);
 			ctxPropertiesMap.put(keyStr, value);
 		}
-	}
-
-	public static Object getContextProperty(String name)
-	{
-		return ctxPropertiesMap.get(name);
 	}
 
 }

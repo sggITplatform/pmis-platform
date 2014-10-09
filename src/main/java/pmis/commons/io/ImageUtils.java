@@ -29,156 +29,42 @@ import javax.imageio.ImageIO;
 public abstract class ImageUtils
 {
 
+	public static String IMAGE_TYPE_BMP = "bmp";// 英文Bitmap（位图）的简写，它是Windows操作系统中的标准图像文件格式
+
 	/**
 	 * 几种常见的图片格式
 	 */
 	public static String IMAGE_TYPE_GIF = "gif";// 图形交换格式
 
-	public static String IMAGE_TYPE_JPG = "jpg";// 联合照片专家组
-
 	public static String IMAGE_TYPE_JPEG = "jpeg";// 联合照片专家组
 
-	public static String IMAGE_TYPE_BMP = "bmp";// 英文Bitmap（位图）的简写，它是Windows操作系统中的标准图像文件格式
+	public static String IMAGE_TYPE_JPG = "jpg";// 联合照片专家组
 
 	public static String IMAGE_TYPE_PNG = "png";// 可移植网络图形
 
 	public static String IMAGE_TYPE_PSD = "psd";// Photoshop的专用格式Photoshop
 
 	/**
-	 * 程序入口：用于测试
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args)
-	{
-		// 1-缩放图像：
-		// 方法一：按比例缩放
-		ImageUtils.scale("e:/img/abc.jpg", "e:/img/abc_scale.jpg", 2, true);// 测试OK
-		// 方法二：按高度和宽度缩放
-		ImageUtils.scale2("e:/img/abc.jpg", "e:/img/abc_scale2.jpg", 500, 300, true);// 测试OK
-
-		// 2-切割图像：
-		// 方法一：按指定起点坐标和宽高切割
-		ImageUtils.cut("e:/img/abc.jpg", "e:/img/abc_cut.jpg", 0, 0, 400, 400);// 测试OK
-		// 方法二：指定切片的行数和列数
-		ImageUtils.cut2("e:/img/abc.jpg", "e:/img/", 2, 2);// 测试OK
-		// 方法三：指定切片的宽度和高度
-		ImageUtils.cut3("e:/img/abc.jpg", "e:/img/", 300, 300);// 测试OK
-
-		// 3-图像类型转换：
-		ImageUtils.convert("e:/img/abc.jpg", "GIF", "e:/img/abc_convert.gif");// 测试OK
-
-		// 4-彩色转黑白：
-		ImageUtils.gray("e:/img/abc.jpg", "e:/img/abc_gray.jpg");// 测试OK
-
-		// 5-给图片添加文字水印：
-		// 方法一：
-		ImageUtils.pressText("我是水印文字", "e:/img/abc.jpg", "e:/img/abc_pressText.jpg", "宋体", Font.BOLD, Color.white, 80,
-			0, 0, 0.5f);// 测试OK
-		// 方法二：
-		ImageUtils.pressText2("我也是水印文字", "e:/img/abc.jpg", "e:/img/abc_pressText2.jpg", "黑体", 36, Color.white, 80, 0,
-			0, 0.5f);// 测试OK
-
-		// 6-给图片添加图片水印：
-		ImageUtils.pressImage("e:/img/abc2.jpg", "e:/img/abc.jpg", "e:/img/abc_pressImage.jpg", 0, 0, 0.5f);// 测试OK
-	}
-
-	/**
-	 * 缩放图像（按比例缩放）
+	 * 图像类型转换：GIF->JPG、GIF->PNG、PNG->JPG、PNG->GIF(X)、BMP->PNG
 	 * 
 	 * @param srcImageFile
-	 *            源图像文件地址
-	 * @param result
-	 *            缩放后的图像地址
-	 * @param scale
-	 *            缩放比例
-	 * @param flag
-	 *            缩放选择:true 放大; false 缩小;
+	 *            源图像地址
+	 * @param formatName
+	 *            包含格式非正式名称的 String：如JPG、JPEG、GIF等
+	 * @param destImageFile
+	 *            目标图像地址
 	 */
-	public static void scale(String srcImageFile, String result, int scale, boolean flag)
+	public static void convert(String srcImageFile, String formatName, String destImageFile)
 	{
 		try
 		{
-			BufferedImage src = ImageIO.read(new File(srcImageFile)); // 读入文件
-			int width = src.getWidth(); // 得到源图宽
-			int height = src.getHeight(); // 得到源图长
-			if (flag)
-			{// 放大
-				width = width * scale;
-				height = height * scale;
-			}
-			else
-			{// 缩小
-				width = width / scale;
-				height = height / scale;
-			}
-			Image image = src.getScaledInstance(width, height, Image.SCALE_DEFAULT);
-			BufferedImage tag = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-			Graphics g = tag.getGraphics();
-			g.drawImage(image, 0, 0, null); // 绘制缩小后的图
-			g.dispose();
-			ImageIO.write(tag, "JPEG", new File(result));// 输出到文件流
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 缩放图像（按高度和宽度缩放）
-	 * 
-	 * @param srcImageFile
-	 *            源图像文件地址
-	 * @param result
-	 *            缩放后的图像地址
-	 * @param height
-	 *            缩放后的高度
-	 * @param width
-	 *            缩放后的宽度
-	 * @param bb
-	 *            比例不对时是否需要补白：true为补白; false为不补白;
-	 */
-	public static void scale2(String srcImageFile, String result, int height, int width, boolean bb)
-	{
-		try
-		{
-			double ratio = 0.0; // 缩放比例
 			File f = new File(srcImageFile);
-			BufferedImage bi = ImageIO.read(f);
-			Image itemp = bi.getScaledInstance(width, height, bi.SCALE_SMOOTH);
-			// 计算比例
-			if ((bi.getHeight() > height) || (bi.getWidth() > width))
-			{
-				if (bi.getHeight() > bi.getWidth())
-				{
-					ratio = (new Integer(height)).doubleValue() / bi.getHeight();
-				}
-				else
-				{
-					ratio = (new Integer(width)).doubleValue() / bi.getWidth();
-				}
-				AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(ratio, ratio), null);
-				itemp = op.filter(bi, null);
-			}
-			if (bb)
-			{// 补白
-				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-				Graphics2D g = image.createGraphics();
-				g.setColor(Color.white);
-				g.fillRect(0, 0, width, height);
-				if (width == itemp.getWidth(null))
-					g.drawImage(itemp, 0, (height - itemp.getHeight(null)) / 2, itemp.getWidth(null),
-						itemp.getHeight(null), Color.white, null);
-				else
-					g.drawImage(itemp, (width - itemp.getWidth(null)) / 2, 0, itemp.getWidth(null),
-						itemp.getHeight(null), Color.white, null);
-				g.dispose();
-				itemp = image;
-			}
-			ImageIO.write((BufferedImage) itemp, "JPEG", new File(result));
+			f.canRead();
+			f.canWrite();
+			BufferedImage src = ImageIO.read(f);
+			ImageIO.write(src, formatName, new File(destImageFile));
 		}
-		catch (IOException e)
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -381,29 +267,26 @@ public abstract class ImageUtils
 	}
 
 	/**
-	 * 图像类型转换：GIF->JPG、GIF->PNG、PNG->JPG、PNG->GIF(X)、BMP->PNG
+	 * 计算text的长度（一个中文算两个字符）
 	 * 
-	 * @param srcImageFile
-	 *            源图像地址
-	 * @param formatName
-	 *            包含格式非正式名称的 String：如JPG、JPEG、GIF等
-	 * @param destImageFile
-	 *            目标图像地址
+	 * @param text
+	 * @return
 	 */
-	public static void convert(String srcImageFile, String formatName, String destImageFile)
+	public static int getLength(String text)
 	{
-		try
+		int length = 0;
+		for (int i = 0; i < text.length(); i++)
 		{
-			File f = new File(srcImageFile);
-			f.canRead();
-			f.canWrite();
-			BufferedImage src = ImageIO.read(f);
-			ImageIO.write(src, formatName, new File(destImageFile));
+			if (new String(text.charAt(i) + "").getBytes().length > 1)
+			{
+				length += 2;
+			}
+			else
+			{
+				length += 1;
+			}
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+		return length / 2;
 	}
 
 	/**
@@ -425,6 +308,89 @@ public abstract class ImageUtils
 			ImageIO.write(src, "JPEG", new File(destImageFile));
 		}
 		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 程序入口：用于测试
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args)
+	{
+		// 1-缩放图像：
+		// 方法一：按比例缩放
+		ImageUtils.scale("e:/img/abc.jpg", "e:/img/abc_scale.jpg", 2, true);// 测试OK
+		// 方法二：按高度和宽度缩放
+		ImageUtils.scale2("e:/img/abc.jpg", "e:/img/abc_scale2.jpg", 500, 300, true);// 测试OK
+
+		// 2-切割图像：
+		// 方法一：按指定起点坐标和宽高切割
+		ImageUtils.cut("e:/img/abc.jpg", "e:/img/abc_cut.jpg", 0, 0, 400, 400);// 测试OK
+		// 方法二：指定切片的行数和列数
+		ImageUtils.cut2("e:/img/abc.jpg", "e:/img/", 2, 2);// 测试OK
+		// 方法三：指定切片的宽度和高度
+		ImageUtils.cut3("e:/img/abc.jpg", "e:/img/", 300, 300);// 测试OK
+
+		// 3-图像类型转换：
+		ImageUtils.convert("e:/img/abc.jpg", "GIF", "e:/img/abc_convert.gif");// 测试OK
+
+		// 4-彩色转黑白：
+		ImageUtils.gray("e:/img/abc.jpg", "e:/img/abc_gray.jpg");// 测试OK
+
+		// 5-给图片添加文字水印：
+		// 方法一：
+		ImageUtils.pressText("我是水印文字", "e:/img/abc.jpg", "e:/img/abc_pressText.jpg", "宋体", Font.BOLD, Color.white, 80,
+			0, 0, 0.5f);// 测试OK
+		// 方法二：
+		ImageUtils.pressText2("我也是水印文字", "e:/img/abc.jpg", "e:/img/abc_pressText2.jpg", "黑体", 36, Color.white, 80, 0,
+			0, 0.5f);// 测试OK
+
+		// 6-给图片添加图片水印：
+		ImageUtils.pressImage("e:/img/abc2.jpg", "e:/img/abc.jpg", "e:/img/abc_pressImage.jpg", 0, 0, 0.5f);// 测试OK
+	}
+
+	/**
+	 * 给图片添加图片水印
+	 * 
+	 * @param pressImg
+	 *            水印图片
+	 * @param srcImageFile
+	 *            源图像地址
+	 * @param destImageFile
+	 *            目标图像地址
+	 * @param x
+	 *            修正值。 默认在中间
+	 * @param y
+	 *            修正值。 默认在中间
+	 * @param alpha
+	 *            透明度：alpha 必须是范围 [0.0, 1.0] 之内（包含边界值）的一个浮点数字
+	 */
+	public static void pressImage(String pressImg, String srcImageFile, String destImageFile, int x, int y, float alpha)
+	{
+		try
+		{
+			File img = new File(srcImageFile);
+			Image src = ImageIO.read(img);
+			int wideth = src.getWidth(null);
+			int height = src.getHeight(null);
+			BufferedImage image = new BufferedImage(wideth, height, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g = image.createGraphics();
+			g.drawImage(src, 0, 0, wideth, height, null);
+			// 水印文件
+			Image src_biao = ImageIO.read(new File(pressImg));
+			int wideth_biao = src_biao.getWidth(null);
+			int height_biao = src_biao.getHeight(null);
+			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, alpha));
+			g.drawImage(src_biao, (wideth - wideth_biao) / 2, (height - height_biao) / 2, wideth_biao, height_biao,
+				null);
+			// 水印文件结束
+			g.dispose();
+			ImageIO.write((BufferedImage) image, "JPEG", new File(destImageFile));
+		}
+		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
@@ -531,69 +497,103 @@ public abstract class ImageUtils
 	}
 
 	/**
-	 * 给图片添加图片水印
+	 * 缩放图像（按比例缩放）
 	 * 
-	 * @param pressImg
-	 *            水印图片
 	 * @param srcImageFile
-	 *            源图像地址
-	 * @param destImageFile
-	 *            目标图像地址
-	 * @param x
-	 *            修正值。 默认在中间
-	 * @param y
-	 *            修正值。 默认在中间
-	 * @param alpha
-	 *            透明度：alpha 必须是范围 [0.0, 1.0] 之内（包含边界值）的一个浮点数字
+	 *            源图像文件地址
+	 * @param result
+	 *            缩放后的图像地址
+	 * @param scale
+	 *            缩放比例
+	 * @param flag
+	 *            缩放选择:true 放大; false 缩小;
 	 */
-	public static void pressImage(String pressImg, String srcImageFile, String destImageFile, int x, int y, float alpha)
+	public static void scale(String srcImageFile, String result, int scale, boolean flag)
 	{
 		try
 		{
-			File img = new File(srcImageFile);
-			Image src = ImageIO.read(img);
-			int wideth = src.getWidth(null);
-			int height = src.getHeight(null);
-			BufferedImage image = new BufferedImage(wideth, height, BufferedImage.TYPE_INT_RGB);
-			Graphics2D g = image.createGraphics();
-			g.drawImage(src, 0, 0, wideth, height, null);
-			// 水印文件
-			Image src_biao = ImageIO.read(new File(pressImg));
-			int wideth_biao = src_biao.getWidth(null);
-			int height_biao = src_biao.getHeight(null);
-			g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, alpha));
-			g.drawImage(src_biao, (wideth - wideth_biao) / 2, (height - height_biao) / 2, wideth_biao, height_biao,
-				null);
-			// 水印文件结束
+			BufferedImage src = ImageIO.read(new File(srcImageFile)); // 读入文件
+			int width = src.getWidth(); // 得到源图宽
+			int height = src.getHeight(); // 得到源图长
+			if (flag)
+			{// 放大
+				width = width * scale;
+				height = height * scale;
+			}
+			else
+			{// 缩小
+				width = width / scale;
+				height = height / scale;
+			}
+			Image image = src.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+			BufferedImage tag = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			Graphics g = tag.getGraphics();
+			g.drawImage(image, 0, 0, null); // 绘制缩小后的图
 			g.dispose();
-			ImageIO.write((BufferedImage) image, "JPEG", new File(destImageFile));
+			ImageIO.write(tag, "JPEG", new File(result));// 输出到文件流
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * 计算text的长度（一个中文算两个字符）
+	 * 缩放图像（按高度和宽度缩放）
 	 * 
-	 * @param text
-	 * @return
+	 * @param srcImageFile
+	 *            源图像文件地址
+	 * @param result
+	 *            缩放后的图像地址
+	 * @param height
+	 *            缩放后的高度
+	 * @param width
+	 *            缩放后的宽度
+	 * @param bb
+	 *            比例不对时是否需要补白：true为补白; false为不补白;
 	 */
-	public static int getLength(String text)
+	public static void scale2(String srcImageFile, String result, int height, int width, boolean bb)
 	{
-		int length = 0;
-		for (int i = 0; i < text.length(); i++)
+		try
 		{
-			if (new String(text.charAt(i) + "").getBytes().length > 1)
+			double ratio = 0.0; // 缩放比例
+			File f = new File(srcImageFile);
+			BufferedImage bi = ImageIO.read(f);
+			Image itemp = bi.getScaledInstance(width, height, bi.SCALE_SMOOTH);
+			// 计算比例
+			if ((bi.getHeight() > height) || (bi.getWidth() > width))
 			{
-				length += 2;
+				if (bi.getHeight() > bi.getWidth())
+				{
+					ratio = (new Integer(height)).doubleValue() / bi.getHeight();
+				}
+				else
+				{
+					ratio = (new Integer(width)).doubleValue() / bi.getWidth();
+				}
+				AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(ratio, ratio), null);
+				itemp = op.filter(bi, null);
 			}
-			else
-			{
-				length += 1;
+			if (bb)
+			{// 补白
+				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+				Graphics2D g = image.createGraphics();
+				g.setColor(Color.white);
+				g.fillRect(0, 0, width, height);
+				if (width == itemp.getWidth(null))
+					g.drawImage(itemp, 0, (height - itemp.getHeight(null)) / 2, itemp.getWidth(null),
+						itemp.getHeight(null), Color.white, null);
+				else
+					g.drawImage(itemp, (width - itemp.getWidth(null)) / 2, 0, itemp.getWidth(null),
+						itemp.getHeight(null), Color.white, null);
+				g.dispose();
+				itemp = image;
 			}
+			ImageIO.write((BufferedImage) itemp, "JPEG", new File(result));
 		}
-		return length / 2;
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 }
