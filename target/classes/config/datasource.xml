@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- configure data base connection pool by using JNDI -->
+	<!-- <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+		<property name="jndiName"> <value>${jdbc.jndiname}</value> </property> </bean> -->
+	<!-- 数据源配置, 使用应用中的C3P0数据库连接池 -->
+	<!-- configure data base connection pool by using C3P0 -->
+	<!-- destroy-method="close" -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<!-- Connection Info -->
+		<property name="driverClass" value="#{rdp_pro.driverClassName}" />
+		<property name="jdbcUrl" value="#{rdp_pro.databaseURL}" />
+		<property name="user" value="#{rdp_pro.username}" />
+		<property name="password" value="#{rdp_pro.password}" />
+		<!-- Connection Pooling Info -->
+		<!--始化时创建的连接数，应在minPoolSize与maxPoolSize之间取值。默认为3； -->
+		<property name="initialPoolSize" value="#{rdp_pro.initialPoolSize}"/>
+		<property name="minPoolSize" value="#{rdp_pro.minPoolSize}" />
+		<!-- 接池中保留的最大连接数。默认为15 -->
+		<property name="maxPoolSize" value="#{rdp_pro.maxPoolSize}" />		
+		<!--当连接池中的连接用完时，C3P0一次性创建新连接的数目 -->
+		<property name="acquireIncrement" value="#{rdp_pro.acquireIncrement}" />
+		<!-- 最大空闲时间，超过空闲时间的连接将被丢弃。为0或负数则永不丢弃。默认为0； -->
+		<property name="maxIdleTime" value="#{rdp_pro.maxIdleTime}" />		
+	</bean>
+</beans>

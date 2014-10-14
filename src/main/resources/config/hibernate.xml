@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ~ Copyright (c) 2014 jon -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- 配置SessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="hibernateProperties">
+			<props>
+				<!-- <prop key="hibernate.dialect">com.szewec.ssdp.util.sqldialect.RdpSqlServer2008Dialect</prop> -->
+				<!-- <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop> -->
+				<prop key="hibernate.dialect">org.hibernate.dialect.SQLServerDialect</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.jdbc.batch_size">20</prop>
+				<prop key="hibernate.connection.release_mode">auto</prop>
+				<prop key="hibernate.autoReconnect">false</prop>
+				<prop key="hibernate.connection.autocommit">true</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate4.SpringSessionContext</prop>
+				<!--解决weblogic无法使用hql的问题 -->
+				<prop key="hibernate.cglib.use_reflection_optimizer">true</prop>
+<!-- 				<prop key="hibernate.connection.SetBigStringTryClob">true</prop> -->
+				<prop key="hibernate.jdbc.use_streams_for_binary">true</prop>
+				<prop key=""></prop>
+			</props>
+			
+		</property>
+		<!-- 自动扫描备注解的实体 -->
+		<property name="packagesToScan" value="com.szewec.ssdp.*.entity"></property>
+		<!--加载hmbl文件以及sql配置文件 -->
+		<!-- <property name="mappingLocations"> <list> <value>classpath:../classes/*.hbm.xml</value> 
+			<value>classpath:../classes/*.naming-sql.xml</value> </list> </property> -->
+		<!-- 加载实体文件 -->
+		<!-- <property name="annotatedClasses"> <list> <value>com.tgb.entity.User</value> 
+			</list> </property> -->
+	</bean>
+
+	<!-- 配置一个事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<!-- 配置一个JdbcTemplate -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+	  <property name="dataSource" ref="dataSource" />
+	</bean>
+	<!--使用注解事物，此处可以多事务管理,使用annotation定义事务 -->
+	<!-- <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" 
+		/> -->
+	<!-- 为了统一事物的规范，此处采用了统一的声明式事物管理 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="create*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+			<tx:method name="delete*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="update*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<tx:method name="upload*" propagation="REQUIRED"
+				rollback-for="java.lang.Exception" />
+			<!--hibernate4必须配置为开启事务 否则 getCurrentSession()获取不到 ,意思是如果是junit的话必须从监听事物
+			的位置开始Test，如果不包含事物是无法获取session的-->
+			<tx:method name="get*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="count*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="find*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="list*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="serch*" propagation="REQUIRED" read-only="true" />
+			<tx:method name="*" propagation="REQUIRED" read-only="true" rollback-for="java.lang.Exception" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config expose-proxy="true">
+		<aop:pointcut id="serviceMethod"
+			expression="execution(* com.szewec.ssdp.*.service.impl..*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod" />
+	</aop:config>
+	<aop:config expose-proxy="true">
+		<aop:pointcut id="serviceMethod1"
+			expression="execution(* com.szewec.ssdp.framework.service.impl..*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod1" />
+	</aop:config>
+</beans>
