@@ -22,7 +22,7 @@ package pmis.web.support.service.impl;
 import java.io.Serializable;
 import java.util.List;
 
-import pmis.web.support.dao.GenericDao;
+import pmis.web.support.dao.EntityDao;
 import pmis.web.support.service.GenericService;
 import pmis.web.support.util.PageUtils;
 
@@ -31,9 +31,9 @@ public class DaoBasedServiceImpl<T, PK extends Serializable> implements GenericS
 {
 
 	//	@Resource
-	private GenericDao<T, PK> basedao;
+	private EntityDao<T, PK> basedao;
 
-	public DaoBasedServiceImpl(GenericDao<T, PK> dao)
+	public DaoBasedServiceImpl(EntityDao<T, PK> dao)
 	{
 		this.basedao = dao;
 	}

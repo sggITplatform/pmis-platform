@@ -23,7 +23,7 @@ import java.util.List;
 
 import pmis.web.support.util.PageUtils;
 
-public interface GenericDao<T, PK extends java.io.Serializable>
+public interface EntityDao<T, PK extends java.io.Serializable>
 {
 	public void clear() throws Exception;
 

@@ -33,11 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import pmis.commons.lang.StringUtils;
-import pmis.web.support.dao.GenericDao;
+import pmis.web.support.dao.EntityDao;
 import pmis.web.support.util.PageUtils;
 
 public class HibernateBasedDao<T, PK extends java.io.Serializable> extends AbstractHibernateBasedDao implements
-		GenericDao<T, PK>
+		EntityDao<T, PK>
 {
 	private Class<T> entityClass;
 
