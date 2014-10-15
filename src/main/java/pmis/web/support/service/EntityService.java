@@ -24,7 +24,7 @@ import java.util.List;
 
 import pmis.web.support.util.PageUtils;
 
-public interface GenericService<T, PK extends Serializable>
+public interface EntityService<T, PK extends Serializable>
 {
 
 	/**

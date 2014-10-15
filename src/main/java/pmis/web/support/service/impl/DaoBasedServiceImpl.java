@@ -23,89 +23,93 @@ import java.io.Serializable;
 import java.util.List;
 
 import pmis.web.support.dao.EntityDao;
-import pmis.web.support.service.GenericService;
+import pmis.web.support.service.EntityService;
 import pmis.web.support.util.PageUtils;
 
 @SuppressWarnings("all")
-public class DaoBasedServiceImpl<T, PK extends Serializable> implements GenericService<T, PK>
+public class DaoBasedServiceImpl<T, PK extends Serializable> implements EntityService<T, PK>
 {
-
 	//	@Resource
-	private EntityDao<T, PK> basedao;
+	private EntityDao<T, PK> _dao;
 
-	public DaoBasedServiceImpl(EntityDao<T, PK> dao)
+	public EntityDao<T, PK> getDao()
 	{
-		this.basedao = dao;
+		return _dao;
+	}
+
+	public void setDao(EntityDao<T, PK> dao)
+	{
+		_dao = dao;
 	}
 
 	@Override
 	public void deleteEntity(T entity) throws Exception
 	{
 
-		basedao.deleteObject(entity);
+		_dao.deleteObject(entity);
 	}
 
 	@Override
 	public void deleteEntityById(PK id) throws Exception
 	{
 
-		basedao.deleteObjectById(id);
+		_dao.deleteObjectById(id);
 	}
 
 	@Override
 	public T getEntity(PK id) throws Exception
 	{
 
-		return (T) basedao.getObject(id);
+		return (T) _dao.getObject(id);
 	}
 
 	@Override
 	public List<T> getObjectsByEntity() throws Exception
 	{
 
-		return basedao.getObjects();
+		return _dao.getObjects();
 	}
 
 	@Override
 	public PageUtils<T> getObjectsByEntity(PageUtils<T> util) throws Exception
 	{
 
-		return basedao.getObjects(util);
+		return _dao.getObjects(util);
 	}
 
 	@Override
 	public PK saveEntity(T entity) throws Exception
 	{
 
-		return (PK) basedao.saveObject(entity);
+		return (PK) _dao.saveObject(entity);
 	}
 
 	@Override
 	public void saveObjects(List<T> list) throws Exception
 	{
 
-		basedao.saveObjects(list);
+		_dao.saveObjects(list);
 	}
 
 	@Override
 	public void saveOrUpdateEntity(T entity) throws Exception
 	{
 
-		basedao.saveOrUpdate(entity);
+		_dao.saveOrUpdate(entity);
 	}
 
 	@Override
 	public void updateEntity(T entity) throws Exception
 	{
 
-		basedao.updateObject(entity);
+		_dao.updateObject(entity);
 	}
 
 	@Override
 	public void updateObjects(List<T> list) throws Exception
 	{
 
-		basedao.updateObjects(list);
+		_dao.updateObjects(list);
 	}
 
 }

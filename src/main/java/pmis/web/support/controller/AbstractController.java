@@ -20,9 +20,6 @@ import pmis.commons.Constants;
  */
 public abstract class AbstractController
 {
-
-	protected static final String ERROR_MSG_KEY = "errorMsg";
-
 	protected Logger logger = LoggerFactory.getLogger(AbstractController.class);
 
 	//获取基于应用程序的url绝对路径  
