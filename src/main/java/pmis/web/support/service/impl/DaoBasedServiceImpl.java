@@ -29,8 +29,13 @@ import pmis.web.support.util.PageUtils;
 @SuppressWarnings("all")
 public class DaoBasedServiceImpl<T, PK extends Serializable> implements EntityService<T, PK>
 {
-	//	@Resource
 	private EntityDao<T, PK> _dao;
+
+	public DaoBasedServiceImpl(EntityDao<T, PK> dao)
+	{
+		super();
+		_dao = dao;
+	}
 
 	public EntityDao<T, PK> getDao()
 	{
@@ -45,7 +50,6 @@ public class DaoBasedServiceImpl<T, PK extends Serializable> implements EntitySe
 	@Override
 	public void deleteEntity(T entity) throws Exception
 	{
-
 		_dao.deleteObject(entity);
 	}
 
@@ -59,56 +63,48 @@ public class DaoBasedServiceImpl<T, PK extends Serializable> implements EntitySe
 	@Override
 	public T getEntity(PK id) throws Exception
 	{
-
 		return (T) _dao.getObject(id);
 	}
 
 	@Override
 	public List<T> getObjectsByEntity() throws Exception
 	{
-
 		return _dao.getObjects();
 	}
 
 	@Override
 	public PageUtils<T> getObjectsByEntity(PageUtils<T> util) throws Exception
 	{
-
 		return _dao.getObjects(util);
 	}
 
 	@Override
 	public PK saveEntity(T entity) throws Exception
 	{
-
 		return (PK) _dao.saveObject(entity);
 	}
 
 	@Override
 	public void saveObjects(List<T> list) throws Exception
 	{
-
 		_dao.saveObjects(list);
 	}
 
 	@Override
 	public void saveOrUpdateEntity(T entity) throws Exception
 	{
-
 		_dao.saveOrUpdate(entity);
 	}
 
 	@Override
 	public void updateEntity(T entity) throws Exception
 	{
-
 		_dao.updateObject(entity);
 	}
 
 	@Override
 	public void updateObjects(List<T> list) throws Exception
 	{
-
 		_dao.updateObjects(list);
 	}
 
