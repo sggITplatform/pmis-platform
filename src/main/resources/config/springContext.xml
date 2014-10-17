@@ -9,13 +9,6 @@
        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
-	<!--资源文件加载 ,采用注册模式来注册资源文件模式 -->
-	<util:properties id="rdp_pro"
-		location="classpath:config/config.properties" />
-	<import resource="classpath*:config/datasource.xml" />
-	<import resource="classpath*:config/hibernate.xml" />
-	<bean class="pmis.web.support.util.SpringUtil" />
-	<!-- <context:component-scan base-package="com.szewec.ssdp.*.dao,com.szewec.ssdp.framework.core.dao,com.szewec.ssdp.*.service" />-->
-	<context:component-scan base-package="pmis.web.support.*" />
-
+       
+	<!-- <import resource="classpath*:config/hibernate_platform.xml" />-->
 </beans>
